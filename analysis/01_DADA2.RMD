@@ -1,0 +1,137 @@
+---
+title: "Assigning ASVs with DADA2"
+output: html_document
+date: "2025-02-19"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.align = "center", 
+                      fig.path = "../figures/01_DADA2")
+```
+
+#set the Seed
+
+```{r set-seed}
+#any number can be chosen
+set.seed(238428)
+```
+
+# symbolically link our data files 
+
+We need to have access to our fastq files for our project!
+```
+# ran these commands to symbolically link files to run dada2 on them
+cd SalinityGradient_16S
+mkdir data
+cd data
+mkdir 01_DADA2
+cd 01_DADA2
+mkdir 01_raw_gzipped_fastqs
+
+# Now, let's run a for loop to symbolically link the data! 
+for FILE in `ls /workdir/in_class_data/raw_gzipped_seqs/*.fastq.gz`
+  do
+  ln -s $FILE /workdir/<your_netID>/SalinityGradient_16S/data/01_DADA2/01_raw_gzipped_fastqs/
+  done
+
+
+
+```
+
+# Goals of this file:
+
+1. Load in the raw sequencing data
+2. Visualize and inspect sequencing data to assess the quality of the reads
+3. Filter by the quality and trim the primers from the sequencing data.
+4. Write out new fastq files that include high quality and trimmed sequences
+5. Re-inspect out data. (Intuition check)
+6. Infer the error rate on the forward (R1) and reverse (R2) reads 
+**DADA2 building the error model.**
+7. Apply the error model and infer the ASVs on the forward and reverse reads individually.
+8. Merge forward and reverse ASVs into "contiguous ASVs".
+9. generate an ASV count table (`otu_table` for phyloseq.)
+
+output we need:
+
+1. ASV count table: `otu_table`
+2. 
+3. 
+
+# Load R libraries
+
+```{r loading libraries}
+#efficiently load with pacman
+pacman::p_load(tidyverse, dada2, phyloseq, DT, devtools, install = FALSE)
+```
+
+
+# Load in the raw sequencing data
+```{r}
+# set the path
+raw_fastqs_path <- "data/01_DADA2/01_raw_gzipped_fastqs"
+raw_fastqs_path
+
+#what files are in the path
+head(list.files(raw_fastqs_path))
+
+#How many are there
+length(list.files(raw_fastqs_path))
+
+#create a vector of forward reads (R1)
+forward_reads <- list.files(raw_fastqs_path, pattern = "R1_001.fastq.gz", full.names = TRUE)
+
+#intuition check
+stopifnot(length(forward_reads) <length(list.files(raw_fastqs_path)))
+
+#Create a vector of reverse reads (R2)
+reverse_reads <- list.files(raw_fastqs_path, pattern = "R2_001.fastq.gz", full.names = TRUE)
+
+#intuition check: Need to have equal number 
+stopifnot(length(reverse_reads) == length(forward_reads))
+```
+
+
+# Visualize and inspect sequencing data to assess the quality of the reads
+
+let's see the quality of the raw reads *before* we trim our sequences. 
+
+```{r raw quality-plot, fig.width=12, fig.height=12}
+#randomly select 12
+
+random_samples <- sample(1:length(reverse_reads), size = 12)
+random_samples
+
+#Calculate and plot the quality of these 12 samples
+
+#forward quality plot
+forward_filteredQual_plot_12 <- plotQualityProfile(forward_reads[random_samples]) +
+  labs(title = "Forward Reads: Raw Quality")
+
+#reverse quality plot
+reverse_filteredQual_plot_12 <- plotQualityProfile(reverse_reads[random_samples]) +
+  labs(title = "Reverse Reads: Raw Quality")
+
+#put the plots together
+
+```
+
+[insert interpretation of forward and reverse quality plots]
+
+# Filter by the quality and trim the primers from the sequencing data
+
+```{r prep filtered sequences}
+#create vector names of samples
+sample_names <- sapply(strsplit(basename(forward_reads), "_"), `[`, 1)
+#intuition check
+head(sample_names)
+```
+
+## Prepare a placeholder for filtered reads
+
+## Filter and trim reads
+# Write out new fastq files that include high quality and trimmed sequences
+
+# Re-inspect out data (Intuition check)
