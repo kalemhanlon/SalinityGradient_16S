@@ -1,4 +1,4 @@
-# runnign fastQC and multiQC on the raw sequencing data
+# running fastQC and multiQC on the raw sequencing data
 
 ##load fastQC
 
